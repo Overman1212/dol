@@ -12,7 +12,7 @@
             padding: 20px;
         }
         .container {
-            margin-top: 50px;
+            margin-top: 20px;
         }
         .profile {
             background: #f4f4f4;
@@ -20,12 +20,19 @@
             border-radius: 10px;
             display: inline-block;
         }
+        .profile img {
+            border-radius: 50%;
+            width: 100px;
+            height: 100px;
+            margin-bottom: 10px;
+        }
     </style>
 </head>
 <body>
     <h2>Welcome to Telegram WebApp</h2>
     <div class="container">
         <div class="profile">
+            <img id="profile_photo" src="default_avatar.png" alt="Profile Photo">
             <h3>User Info</h3>
             <p><strong>First Name:</strong> <span id="first_name">Loading...</span></p>
             <p><strong>Last Name:</strong> <span id="last_name">Loading...</span></p>
@@ -35,17 +42,30 @@
     </div>
 
     <script>
-        // Initialize Telegram WebApp
         let tg = window.Telegram.WebApp;
-        tg.expand(); // Expand WebApp to full screen
+        tg.expand();
 
-        // Get user data
         let user = tg.initDataUnsafe.user;
+
         if (user) {
             document.getElementById("first_name").textContent = user.first_name || "N/A";
             document.getElementById("last_name").textContent = user.last_name || "N/A";
             document.getElementById("username").textContent = user.username || "N/A";
             document.getElementById("user_id").textContent = user.id || "N/A";
+
+            // Fetch profile photo from backend
+            fetch("https://dol-lovat.vercel.app/backed/get_user_photo", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ user_id: user.id })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.photo_url) {
+                    document.getElementById("profile_photo").src = data.photo_url;
+                }
+            })
+            .catch(error => console.error("Error fetching profile photo:", error));
         } else {
             document.querySelector(".profile").innerHTML = "<p>Failed to load user data.</p>";
         }
